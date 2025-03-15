@@ -10,8 +10,7 @@ WORKDIR /app
 RUN apt update && apt install -y gcc g++ python3-dev libpq-dev
 
 # Copy the project files into the container
-COPY challenge /app/challenge
-COPY data /app/data
+COPY backend /app/backend
 COPY requirements.txt /app/
 
 # Install dependencies
@@ -22,4 +21,4 @@ RUN pip install -r /app/requirements.txt
 EXPOSE 8000
 
 # Command to run the application
-CMD ["uvicorn", "challenge.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
