@@ -3,118 +3,206 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Literal, Optional
 import os
+import json
+from datetime import datetime
+import uuid
+
+# Azure SDKs
+from azure.cosmos import CosmosClient
+from azure.ai.contentsafety import ContentSafetyClient
+from azure.ai.contentsafety.models import AnalyzeTextOptions
+from azure.ai.textanalytics import TextAnalyticsClient
+from azure.core.credentials import AzureKeyCredential
+
+# OpenAI
 from openai import OpenAI
 from dotenv import load_dotenv
-import json
 
 # Cargar variables de entorno
 load_dotenv()
 
-app = FastAPI(title="PromptGuardian API")
+# ========== Configuración de Clientes ==========
+# Azure Cosmos DB
+cosmos_client = CosmosClient(
+    os.getenv("COSMOS_ENDPOINT"), 
+    credential=os.getenv("COSMOS_KEY")
+)
+database = cosmos_client.get_database_client("PromptAnalysis")
+container = database.get_container_client("Analytics")
 
-# Configurar CORS
+# Azure Content Safety
+content_safety_client = ContentSafetyClient(
+    endpoint=os.getenv("CONTENT_SAFETY_ENDPOINT"),
+    credential=AzureKeyCredential(os.getenv("CONTENT_SAFETY_KEY"))
+)
+
+# Azure Text Analytics
+text_analytics_client = TextAnalyticsClient(
+    endpoint=os.getenv("TEXT_ANALYTICS_ENDPOINT"),
+    credential=AzureKeyCredential(os.getenv("TEXT_ANALYTICS_KEY"))
+)
+
+# OpenAI
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# ========== Modelos Pydantic ==========
+class TextAnalyticsPII(BaseModel):
+    text: str
+    category: str
+
+class AzureSafetyAnalysis(BaseModel):
+    hate_severity: Optional[int] = None
+    self_harm_severity: Optional[int] = None
+    sexual_severity: Optional[int] = None
+    violence_severity: Optional[int] = None
+
+class TextAnalyticsResult(BaseModel):
+    detected_pii: Optional[List[TextAnalyticsPII]] = None
+    sentiment: Optional[dict] = None
+    key_phrases: Optional[List[str]] = None
+
+class AnalysisResponse(BaseModel):
+    improvedPrompt: str
+    openaiAnalysis: dict
+    azureSafety: Optional[AzureSafetyAnalysis] = None
+    textAnalytics: Optional[TextAnalyticsResult] = None
+
+class PromptRequest(BaseModel):
+    prompt: str
+
+# ========== Funciones Auxiliares ==========
+def analyze_content_safety(text: str) -> AzureSafetyAnalysis:
+    try:
+        request = AnalyzeTextOptions(text=text)
+        response = content_safety_client.analyze_text(request)
+        
+        return AzureSafetyAnalysis(
+            hate_severity=response.categories_analysis[0].severity,
+            self_harm_severity=response.categories_analysis[1].severity,
+            sexual_severity=response.categories_analysis[2].severity,
+            violence_severity=response.categories_analysis[3].severity
+        )
+    except Exception as e:
+        print(f"Content Safety Error: {str(e)}")
+        return AzureSafetyAnalysis()
+
+def analyze_text_features(text: str) -> TextAnalyticsResult:
+    try:
+        # Detección de entidades PII
+        entities = text_analytics_client.recognize_entities([text])[0]
+        detected_pii = [
+            TextAnalyticsPII(text=entity.text, category=entity.category)
+            for entity in entities.entities
+        ]
+        
+        # Análisis de sentimiento
+        sentiment = text_analytics_client.analyze_sentiment([text])[0]
+        sentiment_scores = {
+            "positive": sentiment.confidence_scores.positive,
+            "neutral": sentiment.confidence_scores.neutral,
+            "negative": sentiment.confidence_scores.negative
+        }
+        
+        # Frases clave
+        key_phrases = text_analytics_client.extract_key_phrases([text])[0]
+        
+        return TextAnalyticsResult(
+            detected_pii=detected_pii,
+            sentiment={
+                "score": sentiment_scores,
+                "label": sentiment.sentiment
+            },
+            key_phrases=key_phrases.key_phrases
+        )
+    except Exception as e:
+        print(f"Text Analytics Error: {str(e)}")
+        return TextAnalyticsResult()
+
+# ========== Configuración FastAPI ==========
+app = FastAPI(title="PromptGuardian Pro API")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Origen de Vite
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-
-# Modelos de datos
-class Issue(BaseModel):
-    type: str
-    description: str
-    severity: Literal["low", "medium", "high"]
-
-class AnalysisResponse(BaseModel):
-    improvedPrompt: str
-    analysis: dict
-
-class PromptRequest(BaseModel):
-    prompt: str
-
 @app.post("/analyze-prompt", response_model=AnalysisResponse)
 async def analyze_prompt(request: PromptRequest):
-    if not request.prompt or not request.prompt.strip():
-        raise HTTPException(status_code=400, detail="Se requiere un prompt válido")
+    if not request.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt requerido")
     
     try:
-        # Llamada a la API de OpenAI
-        response = client.chat.completions.create(
-            model="gpt-4-0125-preview",  # Puedes usar "gpt-3.5-turbo" si prefieres
+        # Paso 1: Análisis con Azure
+        azure_safety = analyze_content_safety(request.prompt)
+        text_analytics = analyze_text_features(request.prompt)
+        
+        # Paso 2: Análisis con OpenAI
+        openai_response = openai_client.chat.completions.create(
+            model="gpt-4-turbo-preview",
             messages=[
                 {
                     "role": "system",
-                    "content": """
-                    Actúa como un sistema de preprocesamiento de prompts llamado PromptGuardian.
-                    
-                    Tu tarea es analizar prompts que los usuarios quieren enviar a sistemas de IA generativa.
-                    Debes devolver un JSON con el siguiente formato exacto:
+                    "content": """Eres PromptGuardian Pro. Analiza prompts y devuelve JSON con:
                     {
-                      "issues": [
-                        {"type": "string", "description": "string", "severity": "low|medium|high"}
-                      ],
-                      "improvements": ["string"],
-                      "safetyScore": number (0-10),
-                      "clarityScore": number (0-10),
-                      "improvedPrompt": "string"
-                    }
-                    """
+                        "issues": [{"type": "...", "description": "...", "severity": "low|medium|high"}],
+                        "improvements": ["..."],
+                        "safetyScore": 0-10,
+                        "clarityScore": 0-10,
+                        "improvedPrompt": "..."
+                    }"""
                 },
                 {
                     "role": "user",
-                    "content": f"""
-                    Analiza el siguiente prompt:
+                    "content": f"""Prompt a analizar: "{request.prompt}"
                     
-                    "{request.prompt}"
-                    
-                    Identifica problemas como:
-                    - Errores gramaticales o de ortografía
-                    - Ambigüedades o falta de claridad
-                    - Posible contenido inapropiado o sesgado
-                    - Solicitudes que podrían llevar a respuestas no éticas
-                    - Información personal identificable (PII)
-                    
-                    Proporciona una versión mejorada del prompt que:
-                    - Corrija los problemas identificados
-                    - Sea más claro y específico
-                    - Siga siendo fiel a la intención original del usuario
-                    - Sea ético y seguro
-                    
-                    Asigna puntuaciones de 0 a 10 para seguridad y claridad.
-                    Lista las mejoras específicas que has aplicado.
+                    Considera estos análisis previos de Azure:
+                    - Severidad contenido peligroso: {azure_safety.dict() if azure_safety else None}
+                    - PII detectado: {text_analytics.detected_pii if text_analytics else None}
                     """
                 }
             ],
             response_format={"type": "json_object"}
         )
         
-        # Extraer y procesar la respuesta
-        result = response.choices[0].message.content
-        result_json = json.loads(response.choices[0].message.content)
+        # Procesar respuesta OpenAI
+        openai_data = json.loads(openai_response.choices[0].message.content)
         
-        return {
-            "improvedPrompt": result_json["improvedPrompt"],
-            "analysis": {
-                "issues": result_json["issues"],
-                "improvements": result_json["improvements"],
-                "safetyScore": result_json["safetyScore"],
-                "clarityScore": result_json["clarityScore"],
+        # Paso 3: Guardar en CosmosDB
+        analysis_doc = {
+            "id": str(uuid.uuid4()),
+            "timestamp": datetime.utcnow().isoformat(),
+            "original_prompt": request.prompt,
+            "openai_analysis": openai_data,
+            "azure_metrics": {
+                "content_safety": azure_safety.dict(),
+                "text_analytics": text_analytics.dict()
             }
+        }
+        container.upsert_item(analysis_doc)
+        
+        # Construir respuesta
+        return {
+            "improvedPrompt": openai_data["improvedPrompt"],
+            "openaiAnalysis": {
+                "issues": openai_data.get("issues", []),
+                "improvements": openai_data.get("improvements", []),
+                "safetyScore": openai_data.get("safetyScore", 0),
+                "clarityScore": openai_data.get("clarityScore", 0)
+            },
+            "azureSafety": azure_safety.dict(),
+            "textAnalytics": text_analytics.dict()
         }
         
     except Exception as e:
-        print(f"Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error al analizar el prompt: {str(e)}")
+        print(f"Error completo: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error en análisis: {str(e)}")
 
 @app.get("/")
-async def root():
-    return {"message": "PromptGuardian API está funcionando"}
+async def health_check():
+    return {"status": "OK", "version": "2.1"}
 
 if __name__ == "__main__":
     import uvicorn

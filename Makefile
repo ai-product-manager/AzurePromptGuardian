@@ -25,11 +25,11 @@ install:		## Install dependencies
 
 .PHONY: format
 format:	
-	black app/*.py
+	black backend/*.py
 
 .PHONY: lint
 lint:
-	pylint --disable=R,C --extension-pkg-whitelist='pydantic' --ignore-patterns=test_.*?py app/*.py
+	pylint --disable=R,C --extension-pkg-whitelist='pydantic' --ignore-patterns=test_.*?py backend/*.py
 
 .PHONY: refactor
 refactor: format lint
