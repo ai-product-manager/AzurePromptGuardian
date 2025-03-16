@@ -1,0 +1,9 @@
+declare module 'vue-chartjs';
+declare module 'vue-router';
+declare module 'lucide-vue-next';
+declare module 'chart.js';
+declare module '@/types';
+declare module 'date-fns';
+declare module 'date-fns/locale';
+declare module 'vue';
+declare module '@/services/api';
