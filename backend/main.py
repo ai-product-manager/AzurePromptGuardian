@@ -22,28 +22,38 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ========== Configuración de Clientes ==========
-# Azure Cosmos DB
-cosmos_client = CosmosClient(
-    os.getenv("COSMOS_ENDPOINT"), 
-    credential=os.getenv("COSMOS_KEY")
-)
-database = cosmos_client.get_database_client("PromptAnalysis")
-container = database.get_container_client("Analytics")
+#
+def create_clients():
+try:
+    # Azure Cosmos DB
+    cosmos_client = CosmosClient(
+        os.getenv("COSMOS_ENDPOINT"), 
+        credential=os.getenv("COSMOS_KEY")
+    )
+    database = cosmos_client.get_database_client("PromptAnalysis")
+    container = database.get_container_client("Analytics")
 
-# Azure Content Safety
-content_safety_client = ContentSafetyClient(
-    endpoint=os.getenv("CONTENT_SAFETY_ENDPOINT"),
-    credential=AzureKeyCredential(os.getenv("CONTENT_SAFETY_KEY"))
-)
+    # Azure Content Safety
+    content_safety_client = ContentSafetyClient(
+        endpoint=os.getenv("CONTENT_SAFETY_ENDPOINT"),
+        credential=AzureKeyCredential(os.getenv("CONTENT_SAFETY_KEY"))
+    )
 
-# Azure Text Analytics
-text_analytics_client = TextAnalyticsClient(
-    endpoint=os.getenv("TEXT_ANALYTICS_ENDPOINT"),
-    credential=AzureKeyCredential(os.getenv("TEXT_ANALYTICS_KEY"))
-)
+    # Azure Text Analytics
+    text_analytics_client = TextAnalyticsClient(
+        endpoint=os.getenv("TEXT_ANALYTICS_ENDPOINT"),
+        credential=AzureKeyCredential(os.getenv("TEXT_ANALYTICS_KEY"))
+    )
 
-# OpenAI
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    # OpenAI
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    return container, content_safety_client, text_analytics_client, openai_client
+except Exception as e:
+    print(f"Error creating clients: {str(e)}")
+    raise
+
+container, content_safety_client, text_analytics_client, openai_client = create_clients()
 
 # ========== Modelos Pydantic ==========
 class TextAnalyticsPII(BaseModel):
