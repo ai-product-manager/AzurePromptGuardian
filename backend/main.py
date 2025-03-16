@@ -14,36 +14,58 @@ from azure.ai.contentsafety.models import AnalyzeTextOptions
 from azure.ai.textanalytics import TextAnalyticsClient
 from azure.core.credentials import AzureKeyCredential
 
+from azure.identity import DefaultAzureCredential 
+from azure.keyvault.secrets import SecretClient
+
 # OpenAI
 from openai import OpenAI
-from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+
+# ========== Configuración de Azure Key Vault ==========
+KEY_VAULT_URL = "https://keyvaultgrupo12.vault.azure.net/"
+
+credential = DefaultAzureCredential()
+secret_client = SecretClient(
+    vault_url=KEY_VAULT_URL,
+    credential=credential
+)
+
+# Obtener todos los secretos del Key Vault
+def get_secret(secret_name: str) -> str:
+    return secret_client.get_secret(secret_name).value
+
+# Cargar todas las configuraciones desde Key Vault
+COSMOS_ENDPOINT = get_secret("COSMOS-ENDPOINT")
+COSMOS_KEY = get_secret("COSMOS-kEY")
+CONTENT_SAFETY_ENDPOINT = get_secret("CONTENT-SAFETY-ENDPOINT")
+CONTENT_SAFETY_KEY = get_secret("CONTENT-SAFETY-KEY")
+TEXT_ANALYTICS_ENDPOINT = get_secret("TEXT-ANALYTICS-ENDPOINT")
+TEXT_ANALYTICS_KEY = get_secret("TEXT-ANALYTICS-KEY")
+OPENAI_API_KEY = get_secret("OPENAI-API-KEY")
 
 # ========== Configuración de Clientes ==========
 # Azure Cosmos DB
 cosmos_client = CosmosClient(
-    os.getenv("COSMOS_ENDPOINT"), 
-    credential=os.getenv("COSMOS_KEY")
+    COSMOS_ENDPOINT, 
+    credential=COSMOS_KEY
 )
 database = cosmos_client.get_database_client("PromptAnalysis")
 container = database.get_container_client("Analytics")
 
 # Azure Content Safety
 content_safety_client = ContentSafetyClient(
-    endpoint=os.getenv("CONTENT_SAFETY_ENDPOINT"),
-    credential=AzureKeyCredential(os.getenv("CONTENT_SAFETY_KEY"))
+    endpoint=CONTENT_SAFETY_ENDPOINT,
+    credential=AzureKeyCredential(CONTENT_SAFETY_KEY)
 )
 
 # Azure Text Analytics
 text_analytics_client = TextAnalyticsClient(
-    endpoint=os.getenv("TEXT_ANALYTICS_ENDPOINT"),
-    credential=AzureKeyCredential(os.getenv("TEXT_ANALYTICS_KEY"))
+    endpoint=TEXT_ANALYTICS_ENDPOINT,
+    credential=AzureKeyCredential(TEXT_ANALYTICS_KEY)
 )
 
 # OpenAI
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ========== Modelos Pydantic ==========
 class TextAnalyticsPII(BaseModel):
@@ -130,7 +152,7 @@ app.add_middleware(
 )
 
 # Importar el router de dashboard
-from dashboard_routes import router as dashboard_router 
+from backend.dashboard_routes import router as dashboard_router 
 
 # Agregar el router a la aplicación
 app.include_router(dashboard_router)
