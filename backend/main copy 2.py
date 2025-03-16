@@ -151,7 +151,7 @@ async def analyze_prompt(request: PromptRequest):
             messages=[
                 {
                     "role": "system",
-                    "content": """Eres Azure Prompt Guardian API. Analiza prompts y devuelve JSON con:
+                    "content": """Eres PromptGuardian Pro. Analiza prompts y devuelve JSON con:
                     {
                         "issues": [{"type": "...", "description": "...", "severity": "low|medium|high"}],
                         "improvements": ["..."],

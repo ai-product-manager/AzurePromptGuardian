@@ -114,7 +114,7 @@ async def analyze_prompt(request: PromptRequest):
 
 @app.get("/")
 async def root():
-    return {"message": "PromptGuardian API está funcionando"}
+    return {"message": "Azure Prompt Guardian API está funcionando"}
 
 if __name__ == "__main__":
     import uvicorn

@@ -52,5 +52,3 @@ export interface AnalysisResponse {
 export interface PromptRequest {
   prompt: string;
 }
-
-export * from './dashboard';

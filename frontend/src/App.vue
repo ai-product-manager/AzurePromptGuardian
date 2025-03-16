@@ -1,9 +1,9 @@
 <template>
-    <main class="min-h-screen py-8">
-      <PromptGuardian />
-    </main>
-  </template>
-  
-  <script setup lang="ts">
-  import PromptGuardian from './components/PromptGuardian.vue';
-  </script>
+  <Layout>
+    <router-view />
+  </Layout>
+</template>
+
+<script setup lang="ts">
+import Layout from './components/Layout.vue';
+</script>
