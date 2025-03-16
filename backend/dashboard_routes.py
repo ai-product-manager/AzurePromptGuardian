@@ -33,50 +33,44 @@ async def execute_query(query: str, params: list = None):
 async def get_dashboard_metrics():
     try:
         # 1. Total de prompts
-        total_query = "SELECT VALUE COUNT(1) FROM c"
-        total_result = await execute_query(total_query)
-        total_prompts = total_result[0] if total_result else 0
+        TOTAL_PROMPTS_QUERY = "SELECT VALUE COUNT(1) FROM c"
+        total_prompts = (await execute_query(TOTAL_PROMPTS_QUERY))[0]
 
         # 2. Promedio de safetyScore (consulta separada)
-        avg_safety_query = """
+        AVG_SAFETY_QUERY = """
         SELECT VALUE AVG(c.openai_analysis.safetyScore)
         FROM c
         """
-        safety_data = await execute_query(avg_safety_query)
-        avg_safety = safety_data[0] if safety_data else 0
+        avg_safety = (await execute_query(AVG_SAFETY_QUERY))[0]
 
         # 3. Promedio de clarityScore (consulta separada)
-        avg_clarity_query = """
+        AVG_CLARITY_QUERY = """
         SELECT VALUE AVG(c.openai_analysis.clarityScore)
         FROM c
         """
-        clarity_data = await execute_query(avg_clarity_query)
-        avg_clarity = clarity_data[0] if clarity_data else 0
+        avg_clarity = (await execute_query(AVG_CLARITY_QUERY))[0]
 
         # 4. Conteos temporales (semana y mes)
         now = datetime.utcnow()
 
-        week_query = """
+        TOTAL_WEEK_QUERY = """
         SELECT VALUE COUNT(1)
         FROM c
         WHERE c.timestamp >= @startDate
         """
         week_params = [{"name": "@startDate", "value": (now - timedelta(days=7)).isoformat()}]
-        week_data = await execute_query(week_query, week_params)
-        week_count = week_data[0] if week_data else 0
-
         month_params = [{"name": "@startDate", "value": (now - timedelta(days=30)).isoformat()}]
-        month_data = await execute_query(week_query, month_params)
-        month_count = month_data[0] if month_data else 0
+
+        week_count = (await execute_query(TOTAL_WEEK_QUERY, week_params))[0]
+        month_count = (await execute_query(TOTAL_WEEK_QUERY, month_params))[0]
 
         # 5. Issues totales
-        issues_query = "SELECT VALUE SUM(ARRAY_LENGTH(c.openai_analysis.issues)) FROM c"
-        issues_data = await execute_query(issues_query)
-        total_issues = issues_data[0] if issues_data else 0
+        ISSUES_QUERY = "SELECT VALUE SUM(ARRAY_LENGTH(c.openai_analysis.issues)) FROM c"
+        total_issues = (await execute_query(ISSUES_QUERY))[0]
 
         # 6. Categorías principales
         # Usamos una subconsulta con SELECT VALUE para evitar composiciones de agregados
-        category_query = """
+        CATEGORY_QUERY = """
         SELECT VALUE g
         FROM (
             SELECT 
@@ -87,10 +81,8 @@ async def get_dashboard_metrics():
             GROUP BY c.azure_metrics.text_analytics.key_phrases[0]
         ) g
         """
-        cat_data = await execute_query(category_query)
-        # Ordenamos y tomamos los 6 principales en Python
-        cat_sorted = sorted(cat_data, key=lambda x: x["count"], reverse=True)
-        cat_top_6 = cat_sorted[:6]
+        cat_data = await execute_query(CATEGORY_QUERY)
+        cat_top_6 = sorted(cat_data, key=lambda x: x["count"], reverse=True)[:6]
 
         # 7. Construir la respuesta final
         return DashboardMetrics(
@@ -116,7 +108,7 @@ async def get_historical_data(period: str = Query("week")):
 
     try:
         # 1. Volumen de prompts
-        volume_query = """
+        VOLUME_QUERY = """
         SELECT VALUE {
             "date": g.date,
             "count": g.count
@@ -130,10 +122,10 @@ async def get_historical_data(period: str = Query("week")):
             GROUP BY SUBSTRING(c.timestamp, 0, 10)
         ) g
         """
-        volume_data = await execute_query(volume_query, [{"name": "@startDate", "value": start_date}])
+        volume_data = await execute_query(VOLUME_QUERY, [{"name": "@startDate", "value": start_date}])
         
         # 2. Puntajes de seguridad y claridad
-        safety_query = """
+        SAFETY_QUERY = """
         SELECT VALUE {
             "date": g.date,
             "avgSafetyScore": g.avgSafetyScore,
@@ -148,10 +140,10 @@ async def get_historical_data(period: str = Query("week")):
             GROUP BY SUBSTRING(c.timestamp, 0, 10)
         ) g
         """
-        safety_data = await execute_query(safety_query)
+        safety_data = await execute_query(SAFETY_QUERY)
 
         # 3. Tendencias de sentimiento
-        sentiment_query = """
+        SENTIMENT_QUERY = """
         SELECT VALUE {
             "date": g.date,
             "positive": g.positive,
@@ -168,10 +160,10 @@ async def get_historical_data(period: str = Query("week")):
             GROUP BY SUBSTRING(c.timestamp, 0, 10)
         ) g
         """
-        sentiment_data = await execute_query(sentiment_query)
+        sentiment_data = await execute_query(SENTIMENT_QUERY)
 
         # 4. Tendencias de seguridad de contenido
-        safety_trend_query = """
+        SAFETY_TREND_QUERY = """
         SELECT VALUE {
             "date": g.date,
             "hate": g.hate,
@@ -190,10 +182,10 @@ async def get_historical_data(period: str = Query("week")):
             GROUP BY SUBSTRING(c.timestamp, 0, 10)
         ) g
         """
-        safety_trend_data = await execute_query(safety_trend_query)
+        safety_trend_data = await execute_query(SAFETY_TREND_QUERY)
 
         # 5. Issues principales (top issues)
-        issues_query = """
+        ISSUES_QUERY = """
         SELECT TOP 10 VALUE g
         FROM (
             SELECT 
@@ -205,7 +197,7 @@ async def get_historical_data(period: str = Query("week")):
             GROUP BY i.type, i.severity
         ) g
         """
-        issues_data = await execute_query(issues_query)
+        issues_data = await execute_query(ISSUES_QUERY)
 
         return HistoricalData(
             promptVolume=[VolumeMetric(**d) for d in volume_data],
@@ -242,7 +234,7 @@ async def get_top_issues(limit: int = Query(5, ge=1, le=20)):
 @router.get("/content-categories", response_model=List[CategoryMetric])
 async def get_content_categories():
     try:
-        query = """
+        CATEGORY_QUERY = """
         SELECT TOP 6
             c.azure_metrics.text_analytics.key_phrases[0] AS category,
             COUNT(1) AS count
@@ -250,7 +242,7 @@ async def get_content_categories():
         WHERE ARRAY_LENGTH(c.azure_metrics.text_analytics.key_phrases) > 0
         GROUP BY c.azure_metrics.text_analytics.key_phrases[0]
         """
-        results = await execute_query(query)
+        results = await execute_query(CATEGORY_QUERY)
         results_sorted = sorted(results, key=lambda x: x["count"], reverse=True)
         return [CategoryMetric(**item) for item in results_sorted]
     except Exception as e:

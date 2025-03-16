@@ -24,34 +24,34 @@ load_dotenv()
 # ========== Configuración de Clientes ==========
 #
 def create_clients():
-try:
-    # Azure Cosmos DB
-    cosmos_client = CosmosClient(
-        os.getenv("COSMOS_ENDPOINT"), 
-        credential=os.getenv("COSMOS_KEY")
-    )
-    database = cosmos_client.get_database_client("PromptAnalysis")
-    container = database.get_container_client("Analytics")
+    try:
+        # Azure Cosmos DB
+        cosmos_client = CosmosClient(
+            os.getenv("COSMOS_ENDPOINT"), 
+            credential=os.getenv("COSMOS_KEY")
+        )
+        database = cosmos_client.get_database_client("PromptAnalysis")
+        container = database.get_container_client("Analytics")
 
-    # Azure Content Safety
-    content_safety_client = ContentSafetyClient(
-        endpoint=os.getenv("CONTENT_SAFETY_ENDPOINT"),
-        credential=AzureKeyCredential(os.getenv("CONTENT_SAFETY_KEY"))
-    )
+        # Azure Content Safety
+        content_safety_client = ContentSafetyClient(
+            endpoint=os.getenv("CONTENT_SAFETY_ENDPOINT"),
+            credential=AzureKeyCredential(os.getenv("CONTENT_SAFETY_KEY"))
+        )
 
-    # Azure Text Analytics
-    text_analytics_client = TextAnalyticsClient(
-        endpoint=os.getenv("TEXT_ANALYTICS_ENDPOINT"),
-        credential=AzureKeyCredential(os.getenv("TEXT_ANALYTICS_KEY"))
-    )
+        # Azure Text Analytics
+        text_analytics_client = TextAnalyticsClient(
+            endpoint=os.getenv("TEXT_ANALYTICS_ENDPOINT"),
+            credential=AzureKeyCredential(os.getenv("TEXT_ANALYTICS_KEY"))
+        )
 
-    # OpenAI
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # OpenAI
+        openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    return container, content_safety_client, text_analytics_client, openai_client
-except Exception as e:
-    print(f"Error creating clients: {str(e)}")
-    raise
+        return container, content_safety_client, text_analytics_client, openai_client
+    except Exception as e:
+        print(f"Error creating clients: {str(e)}")
+        raise
 
 container, content_safety_client, text_analytics_client, openai_client = create_clients()
 
@@ -81,7 +81,7 @@ class PromptRequest(BaseModel):
     prompt: str
 
 # ========== Funciones Auxiliares ==========
-def analyze_content_safety(text: str) -> AzureSafetyAnalysis:
+async def analyze_content_safety(text: str) -> AzureSafetyAnalysis:
     try:
         request = AnalyzeTextOptions(text=text)
         response = content_safety_client.analyze_text(request)
@@ -96,7 +96,7 @@ def analyze_content_safety(text: str) -> AzureSafetyAnalysis:
         print(f"Content Safety Error: {str(e)}")
         return AzureSafetyAnalysis()
 
-def analyze_text_features(text: str) -> TextAnalyticsResult:
+async def analyze_text_features(text: str) -> TextAnalyticsResult:
     try:
         # Detección de entidades PII
         entities = text_analytics_client.recognize_entities([text])[0]
@@ -152,8 +152,8 @@ async def analyze_prompt(request: PromptRequest):
     
     try:
         # Paso 1: Análisis con Azure
-        azure_safety = analyze_content_safety(request.prompt)
-        text_analytics = analyze_text_features(request.prompt)
+        azure_safety = await analyze_content_safety(request.prompt)
+        text_analytics = await analyze_text_features(request.prompt)
         
         # Paso 2: Análisis con OpenAI
         openai_response = openai_client.chat.completions.create(
