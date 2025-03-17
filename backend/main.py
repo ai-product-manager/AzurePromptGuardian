@@ -179,6 +179,12 @@ app.add_middleware(
     max_age=600
 )
 
+# Importar el router de dashboard
+from dashboard_routes import router as dashboard_router 
+
+# Agregar el router a la aplicación
+app.include_router(dashboard_router)
+
 # ========== Endpoints ==========
 @app.post("/analyze-prompt", response_model=AnalysisResponse)
 async def analyze_prompt(request: PromptRequest):

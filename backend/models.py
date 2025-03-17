@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, Field
+from typing import List
 
 class CategoryMetric(BaseModel):
     category: str
@@ -9,29 +9,27 @@ class DashboardMetrics(BaseModel):
     totalPrompts: int
     totalIssuesDetected: int
     avgSafetyScore: float
-    avgClarityScore: float
+    avgFairnessScore: float
+    avgInclusivityScore: float
     promptsLastWeek: int
     promptsLastMonth: int
     percentChangeWeek: float
     percentChangeMonth: float
     topCategories: List[CategoryMetric]
 
-class DailyMetric(BaseModel):
-    date: str
-    count: int
-    avgSafetyScore: Optional[float] = None
-    avgClarityScore: Optional[float] = None
-    
-# Modelo para el volumen de prompts (fecha y count)
 class VolumeMetric(BaseModel):
     date: str
     count: int
 
-# Modelo para las puntuaciones de seguridad y claridad
-class SafetyMetric(BaseModel):
+class ScoresMetric(BaseModel):
     date: str
-    avgSafetyScore: Optional[float] = None
-    avgClarityScore: Optional[float] = None
+    avg_safety_score: float = Field(..., alias="safety")
+    avg_fairness_score: float = Field(..., alias="fairness")
+    avg_inclusivity_score: float = Field(..., alias="inclusivity")
+
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {float: lambda v: round(v, 2)}
 
 class SentimentMetric(BaseModel):
     date: str
@@ -53,7 +51,7 @@ class IssueMetric(BaseModel):
 
 class HistoricalData(BaseModel):
     promptVolume: List[VolumeMetric]
-    safetyScores: List[SafetyMetric]
+    scoresTrend: List[ScoresMetric]
     sentimentTrend: List[SentimentMetric]
     contentSafetyTrend: List[ContentSafetyMetric]
     topIssues: List[IssueMetric]
