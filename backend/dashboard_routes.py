@@ -3,8 +3,8 @@ import logging
 from fastapi import APIRouter, Query, HTTPException
 from typing import List
 from datetime import datetime, timedelta
-from backend.models import *
-from backend.database import get_cosmos_container
+from models import *
+from database import get_cosmos_container
 
 router = APIRouter(prefix="/dashboard")
 container = get_cosmos_container()
