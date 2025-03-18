@@ -8,13 +8,25 @@ import type {
   IssueMetric,
   CategoryMetric,
   RejectedPrompt,
+  FeedbackRequest,
 } from "../types"
 
 const API_URL = "/api"
 
-export const analyzePrompt = async (prompt: string): Promise<AnalysisResponse> => {
+// Actualicemos la función analyzePrompt en el servicio API para aceptar los parámetros adicionales
+
+export const analyzePrompt = async (
+  prompt: string,
+  options?: {
+    generate_variants?: boolean
+    context?: string
+    target_model?: string
+    optimization_focus?: string[]
+  },
+): Promise<AnalysisResponse> => {
   const response = await axios.post<AnalysisResponse>(`${API_URL}/analyze-prompt`, {
     prompt,
+    ...options,
   } as PromptRequest)
   return response.data
 }
@@ -22,6 +34,10 @@ export const analyzePrompt = async (prompt: string): Promise<AnalysisResponse> =
 export const getAuditTrail = async (analysisId: string): Promise<AuditTrail> => {
   const response = await axios.get<AuditTrail>(`${API_URL}/audit/${analysisId}`)
   return response.data
+}
+
+export const submitFeedback = async (feedback: FeedbackRequest): Promise<void> => {
+  await axios.post(`${API_URL}/feedback`, feedback)
 }
 
 // Funciones para el dashboard

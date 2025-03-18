@@ -13,6 +13,127 @@
             placeholder="Escriba su prompt aquí..."
             class="w-full min-h-[200px] p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
           ></textarea>
+          
+          <!-- Configuración Avanzada (Colapsable) -->
+          <div class="mt-4">
+            <button 
+              @click="showAdvancedConfig = !showAdvancedConfig" 
+              class="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 focus:outline-none"
+            >
+              <ChevronRightIcon 
+                :class="[
+                  'h-4 w-4 mr-1 transition-transform', 
+                  showAdvancedConfig ? 'transform rotate-90' : ''
+                ]" 
+              />
+              Configuración Avanzada
+            </button>
+            
+            <div v-if="showAdvancedConfig" class="mt-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700 space-y-4">
+              <!-- Generar Variantes -->
+              <div class="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="generate-variants" 
+                  v-model="generateVariants"
+                  class="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label for="generate-variants" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  Generar variantes optimizadas
+                </label>
+              </div>
+              
+              <!-- Modelo Objetivo -->
+              <div>
+                <label for="target-model" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Modelo Objetivo
+                </label>
+                <select 
+                  id="target-model" 
+                  v-model="targetModel"
+                  class="w-full p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="gpt-4">GPT-4</option>
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  <option value="claude-3">Claude 3</option>
+                  <option value="llama-3">Llama 3</option>
+                  <option value="gemini-pro">Gemini Pro</option>
+                  <option value="mistral-large">Mistral Large</option>
+                </select>
+              </div>
+              
+              <!-- Enfoque de Optimización -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Enfoque de Optimización
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="focus-clarity" 
+                      value="clarity" 
+                      v-model="optimizationFocus"
+                      class="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label for="focus-clarity" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                      Claridad
+                    </label>
+                  </div>
+                  <div class="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="focus-specificity" 
+                      value="specificity" 
+                      v-model="optimizationFocus"
+                      class="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label for="focus-specificity" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                      Especificidad
+                    </label>
+                  </div>
+                  <div class="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="focus-conciseness" 
+                      value="conciseness" 
+                      v-model="optimizationFocus"
+                      class="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label for="focus-conciseness" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                      Concisión
+                    </label>
+                  </div>
+                  <div class="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="focus-safety" 
+                      value="safety" 
+                      v-model="optimizationFocus"
+                      class="h-4 w-4 text-primary-500 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label for="focus-safety" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                      Seguridad
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Contexto Adicional -->
+              <div>
+                <label for="additional-context" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Contexto Adicional
+                </label>
+                <textarea
+                  id="additional-context"
+                  v-model="additionalContext"
+                  placeholder="Proporcione contexto adicional para entender mejor el prompt..."
+                  rows="3"
+                  class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                ></textarea>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="p-4 border-t border-gray-200 dark:border-gray-700">
           <button 
@@ -73,26 +194,26 @@
                 Puntuaciones
               </button>
               <button 
-                @click="activeTab = 'safety'" 
+                @click="activeTab = 'issues'" 
                 :class="[
                   'py-2 px-4 text-sm font-medium border-b-2 focus:outline-none transition-colors',
-                  activeTab === 'safety' 
+                  activeTab === 'issues' 
                     ? 'border-primary-500 text-primary-500' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 ]"
               >
-                Seguridad
+                Problemas
               </button>
               <button 
-                @click="activeTab = 'text'" 
+                @click="activeTab = 'variants'" 
                 :class="[
                   'py-2 px-4 text-sm font-medium border-b-2 focus:outline-none transition-colors',
-                  activeTab === 'text' 
+                  activeTab === 'variants' 
                     ? 'border-primary-500 text-primary-500' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 ]"
               >
-                Análisis de Texto
+                Variantes
               </button>
               <button 
                 @click="activeTab = 'audit'" 
@@ -122,6 +243,12 @@
                 <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md min-h-[200px] whitespace-pre-wrap">
                   {{ analysisResult.improved_prompt }}
                 </div>
+                
+                <!-- Explicación de mejoras -->
+                <div v-if="analysisResult.improvement_explanation" class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                  <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Explicación de mejoras:</h3>
+                  <p class="text-sm text-blue-700 dark:text-blue-200">{{ analysisResult.improvement_explanation }}</p>
+                </div>
               </div>
               <div class="p-4 border-t border-gray-200 dark:border-gray-700">
                 <button 
@@ -146,7 +273,7 @@
               </div>
               <div class="p-4 space-y-6">
                 <!-- Scores -->
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center">
                     <div class="text-2xl font-bold">{{ Math.round(analysisResult.safety_score * 100) }}%</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Seguridad</div>
@@ -179,6 +306,40 @@
                   </div>
                 </div>
                 
+                <!-- Ambiguity Scores -->
+                <div class="grid grid-cols-3 gap-4">
+                  <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center">
+                    <div class="text-2xl font-bold">{{ Math.round((1 - analysisResult.ambiguity_score) * 100) }}%</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Claridad</div>
+                    <div class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        class="bg-yellow-500 h-2 rounded-full" 
+                        :style="`width: ${(1 - analysisResult.ambiguity_score) * 100}%`"
+                      ></div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center">
+                    <div class="text-2xl font-bold">{{ Math.round(analysisResult.completeness_score * 100) }}%</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Completitud</div>
+                    <div class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        class="bg-orange-500 h-2 rounded-full" 
+                        :style="`width: ${analysisResult.completeness_score * 100}%`"
+                      ></div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center">
+                    <div class="text-2xl font-bold">{{ Math.round(analysisResult.clarity_score * 100) }}%</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Precisión</div>
+                    <div class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        class="bg-teal-500 h-2 rounded-full" 
+                        :style="`width: ${analysisResult.clarity_score * 100}%`"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
                 <!-- Privacy Measures -->
                 <div class="space-y-2">
                   <h3 class="text-sm font-medium">Medidas de Privacidad Aplicadas</h3>
@@ -190,189 +351,210 @@
                     >
                       {{ formatPrivacyMeasure(measure) }}
                     </span>
+                    <span v-if="!analysisResult.privacy_measures || analysisResult.privacy_measures.length === 0" 
+                      class="px-3 py-1 bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 rounded-full text-xs">
+                      No se requirieron medidas de privacidad
+                    </span>
                   </div>
                 </div>
                 
-                <!-- Audit Info -->
+                <!-- Safety Analysis -->
                 <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md">
-                  <h3 class="text-sm font-medium mb-2">Información de Auditoría</h3>
-                  <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="text-gray-500 dark:text-gray-400">ID de Análisis:</div>
-                    <div class="font-mono">{{ analysisResult.analysis_id }}</div>
-                    <div class="text-gray-500 dark:text-gray-400">ID de Responsabilidad:</div>
-                    <div class="font-mono">{{ analysisResult.accountability_id }}</div>
+                  <h3 class="text-sm font-medium mb-2">Análisis de Seguridad</h3>
+                  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <div v-for="(value, category) in analysisResult.transparency_report.safety_analysis.categories" :key="category"
+                      class="flex flex-col items-center">
+                      <div class="text-sm font-medium">{{ formatCategory(category) }}</div>
+                      <div :class="getSeverityTextClass(value)" class="text-lg font-bold">
+                        {{ value }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ getSeverityLabel(value) }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Safety Analysis Tab -->
-          <div v-if="activeTab === 'safety' && !analysisResult.error" class="mt-4">
+          <!-- Issues Tab -->
+          <div v-if="activeTab === 'issues' && !analysisResult.error" class="mt-4">
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
               <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-lg font-semibold flex items-center gap-2">
-                  <ShieldIcon class="h-5 w-5 text-purple-500" />
-                  Análisis de Seguridad
+                  <AlertCircleIcon class="h-5 w-5 text-orange-500" />
+                  Problemas Detectados
                 </h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Evaluación de seguridad de contenido</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Problemas identificados en el prompt original</p>
               </div>
               
-              <div class="p-4 space-y-6">
-                <!-- Content Safety -->
-                <div>
-                  <h3 class="text-sm font-medium mb-3">Análisis de Seguridad de Contenido</h3>
-                  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div 
-                      class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center"
-                      :class="getSeverityClass(analysisResult.transparency_report.safety_analysis.Hate)"
-                    >
-                      <div class="text-xl font-bold">{{ analysisResult.transparency_report.safety_analysis.Hate || 0 }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">Odio</div>
-                    </div>
-                    <div 
-                      class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center"
-                      :class="getSeverityClass(analysisResult.transparency_report.safety_analysis.SelfHarm)"
-                    >
-                      <div class="text-xl font-bold">{{ analysisResult.transparency_report.safety_analysis.SelfHarm || 0 }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">Autolesión</div>
-                    </div>
-                    <div 
-                      class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center"
-                      :class="getSeverityClass(analysisResult.transparency_report.safety_analysis.Sexual)"
-                    >
-                      <div class="text-xl font-bold">{{ analysisResult.transparency_report.safety_analysis.Sexual || 0 }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">Sexual</div>
-                    </div>
-                    <div 
-                      class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-center"
-                      :class="getSeverityClass(analysisResult.transparency_report.safety_analysis.Violence)"
-                    >
-                      <div class="text-xl font-bold">{{ analysisResult.transparency_report.safety_analysis.Violence || 0 }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">Violencia</div>
+              <div class="p-4 space-y-4">
+                <div v-if="analysisResult.issues && analysisResult.issues.length > 0">
+                  <div v-for="(issue, index) in analysisResult.issues" :key="index" 
+                    class="mb-4 p-4 rounded-md"
+                    :class="{
+                      'bg-red-50 dark:bg-red-900/20': issue.severity === 'high',
+                      'bg-yellow-50 dark:bg-yellow-900/20': issue.severity === 'medium',
+                      'bg-blue-50 dark:bg-blue-900/20': issue.severity === 'low'
+                    }">
+                    <div class="flex items-start">
+                      <div :class="{
+                        'text-red-500 dark:text-red-400': issue.severity === 'high',
+                        'text-yellow-500 dark:text-yellow-400': issue.severity === 'medium',
+                        'text-blue-500 dark:text-blue-400': issue.severity === 'low'
+                      }" class="mr-3 mt-0.5">
+                        <AlertTriangleIcon v-if="issue.severity === 'high'" class="h-5 w-5" />
+                        <AlertCircleIcon v-else-if="issue.severity === 'medium'" class="h-5 w-5" />
+                        <InfoIcon v-else class="h-5 w-5" />
+                      </div>
+                      <div class="flex-1">
+                        <div class="flex items-center mb-1">
+                          <h3 :class="{
+                            'text-red-800 dark:text-red-300': issue.severity === 'high',
+                            'text-yellow-800 dark:text-yellow-300': issue.severity === 'medium',
+                            'text-blue-800 dark:text-blue-300': issue.severity === 'low'
+                          }" class="text-sm font-medium">
+                            {{ formatIssueType(issue.type) }}
+                          </h3>
+                          <span :class="{
+                            'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200': issue.severity === 'high',
+                            'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200': issue.severity === 'medium',
+                            'bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200': issue.severity === 'low'
+                          }" class="ml-2 px-2 py-0.5 rounded-full text-xs">
+                            {{ formatSeverity(issue.severity) }}
+                          </span>
+                        </div>
+                        <p :class="{
+                          'text-red-700 dark:text-red-300': issue.severity === 'high',
+                          'text-yellow-700 dark:text-yellow-300': issue.severity === 'medium',
+                          'text-blue-700 dark:text-blue-300': issue.severity === 'low'
+                        }" class="text-sm mb-2">
+                          {{ issue.description }}
+                        </p>
+                        <div :class="{
+                          'bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800': issue.severity === 'high',
+                          'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-200 dark:border-yellow-800': issue.severity === 'medium',
+                          'bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800': issue.severity === 'low'
+                        }" class="text-sm p-2 rounded border">
+                          <span class="font-medium">Solución: </span>{{ issue.mitigation }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <!-- Safety Thresholds -->
-                <div>
-                  <h3 class="text-sm font-medium mb-3">Umbrales de Seguridad</h3>
-                  <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md">
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                      <div>Odio:</div>
-                      <div>4</div>
-                      <div>Autolesión:</div>
-                      <div>2</div>
-                      <div>Sexual:</div>
-                      <div>3</div>
-                      <div>Violencia:</div>
-                      <div>3</div>
-                    </div>
-                    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Los valores por encima de estos umbrales se consideran potencialmente problemáticos.
-                    </div>
-                  </div>
+                <div v-else class="text-center py-8">
+                  <CheckCircleIcon class="h-12 w-12 text-green-500 mx-auto mb-3" />
+                  <p class="text-lg font-medium text-gray-900 dark:text-gray-100">¡No se detectaron problemas!</p>
+                  <p class="text-gray-500 dark:text-gray-400">El prompt parece estar bien formulado.</p>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Text Analysis Tab -->
-          <div v-if="activeTab === 'text' && !analysisResult.error" class="mt-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold flex items-center gap-2">
-                  <FileTextIcon class="h-5 w-5 text-orange-500" />
-                  Análisis de Texto
-                </h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Análisis de sentimiento, PII y frases clave</p>
-              </div>
-              
-              <div class="p-4 space-y-6">
-                <!-- Sentiment Analysis -->
-                <div>
-                  <h3 class="text-sm font-medium mb-3">Análisis de Sentimiento</h3>
-                  <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md">
-                    <div class="flex justify-between items-center mb-2">
-                      <span class="text-sm font-medium">Sentimiento: 
-                        <span 
-                          :class="{
-                            'text-green-600 dark:text-green-400': analysisResult.transparency_report.text_analysis.sentiment.label === 'positive',
-                            'text-yellow-600 dark:text-yellow-400': analysisResult.transparency_report.text_analysis.sentiment.label === 'neutral',
-                            'text-red-600 dark:text-red-400': analysisResult.transparency_report.text_analysis.sentiment.label === 'negative'
-                          }"
-                        >
-                          {{ getSentimentLabel(analysisResult.transparency_report.text_analysis.sentiment.label) }}
-                        </span>
+                
+                <!-- Ambiguity Analysis -->
+                <div v-if="analysisResult.transparency_report.ambiguity_analysis" class="mt-6">
+                  <h3 class="text-sm font-medium mb-3">Análisis de Ambigüedad</h3>
+                  
+                  <!-- Ambiguous Terms -->
+                  <div v-if="analysisResult.transparency_report.ambiguity_analysis.ambiguous_terms && analysisResult.transparency_report.ambiguity_analysis.ambiguous_terms.length > 0" class="mb-4">
+                    <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Términos Ambiguos:</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span 
+                        v-for="(term, i) in analysisResult.transparency_report.ambiguity_analysis.ambiguous_terms" 
+                        :key="i"
+                        class="px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full text-xs"
+                      >
+                        {{ term }}
                       </span>
                     </div>
-                    <div class="space-y-2">
-                      <div class="flex items-center">
-                        <span class="text-xs w-20">Positivo:</span>
-                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div 
-                            class="bg-green-500 h-2 rounded-full" 
-                            :style="`width: ${analysisResult.transparency_report.text_analysis.sentiment.scores.positive * 100}%`"
-                          ></div>
-                        </div>
-                        <span class="text-xs ml-2 w-10">{{ Math.round(analysisResult.transparency_report.text_analysis.sentiment.scores.positive * 100) }}%</span>
-                      </div>
-                      <div class="flex items-center">
-                        <span class="text-xs w-20">Neutral:</span>
-                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div 
-                            class="bg-yellow-500 h-2 rounded-full" 
-                            :style="`width: ${analysisResult.transparency_report.text_analysis.sentiment.scores.neutral * 100}%`"
-                          ></div>
-                        </div>
-                        <span class="text-xs ml-2 w-10">{{ Math.round(analysisResult.transparency_report.text_analysis.sentiment.scores.neutral * 100) }}%</span>
-                      </div>
-                      <div class="flex items-center">
-                        <span class="text-xs w-20">Negativo:</span>
-                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div 
-                            class="bg-red-500 h-2 rounded-full" 
-                            :style="`width: ${analysisResult.transparency_report.text_analysis.sentiment.scores.negative * 100}%`"
-                          ></div>
-                        </div>
-                        <span class="text-xs ml-2 w-10">{{ Math.round(analysisResult.transparency_report.text_analysis.sentiment.scores.negative * 100) }}%</span>
-                      </div>
-                    </div>
                   </div>
-                </div>
-                
-                <!-- PII Detection -->
-                <div v-if="analysisResult.transparency_report.text_analysis.pii && analysisResult.transparency_report.text_analysis.pii.length > 0">
-                  <h3 class="text-sm font-medium mb-3">Información Personal Identificable (PII)</h3>
-                  <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md">
-                    <ul class="space-y-2">
-                      <li 
-                        v-for="(pii, i) in analysisResult.transparency_report.text_analysis.pii" 
-                        :key="i"
-                        class="flex items-center gap-2 text-sm"
-                      >
-                        <UserIcon class="h-4 w-4 text-orange-500" />
-                        <span class="font-medium">{{ pii.text }}</span>
-                        <span class="text-xs px-2 py-0.5 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 rounded-full">
-                          {{ pii.category }}
-                        </span>
+                  
+                  <!-- Missing Context -->
+                  <div v-if="analysisResult.transparency_report.ambiguity_analysis.missing_context && analysisResult.transparency_report.ambiguity_analysis.missing_context.length > 0" class="mb-4">
+                    <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Contexto Faltante:</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                      <li v-for="(context, i) in analysisResult.transparency_report.ambiguity_analysis.missing_context" :key="i">
+                        {{ context }}
                       </li>
                     </ul>
                   </div>
                 </div>
-                
-                <!-- Key Phrases -->
-                <div v-if="analysisResult.transparency_report.text_analysis.key_phrases && analysisResult.transparency_report.text_analysis.key_phrases.length > 0">
-                  <h3 class="text-sm font-medium mb-3">Frases Clave</h3>
-                  <div class="flex flex-wrap gap-2">
-                    <span 
-                      v-for="(phrase, i) in analysisResult.transparency_report.text_analysis.key_phrases" 
-                      :key="i"
-                      class="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full text-xs"
-                    >
-                      {{ phrase }}
-                    </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Variants Tab -->
+          <div v-if="activeTab === 'variants' && !analysisResult.error" class="mt-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+              <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold flex items-center gap-2">
+                  <CopyIcon class="h-5 w-5 text-indigo-500" />
+                  Variantes Sugeridas
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Alternativas optimizadas para su prompt</p>
+              </div>
+              
+              <div class="p-4 space-y-6">
+                <div v-if="analysisResult.suggested_variants && analysisResult.suggested_variants.length > 0">
+                  <div v-for="(variant, index) in analysisResult.suggested_variants" :key="index" 
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="mb-3">
+                      <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-sm font-medium">Variante {{ index + 1 }}</h3>
+                        <button 
+                          @click="copyVariant(variant.variant_text)" 
+                          class="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                        >
+                          Copiar
+                        </button>
+                      </div>
+                      <div class="p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 text-sm">
+                        {{ variant.variant_text }}
+                      </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                      <div class="text-center">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Calidad</div>
+                        <div class="text-sm font-medium">{{ Math.round(variant.quality_score * 100) }}%</div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
+                          <div 
+                            class="bg-indigo-500 h-1.5 rounded-full" 
+                            :style="`width: ${variant.quality_score * 100}%`"
+                          ></div>
+                        </div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Claridad</div>
+                        <div class="text-sm font-medium">{{ Math.round(variant.clarity_score * 100) }}%</div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
+                          <div 
+                            class="bg-blue-500 h-1.5 rounded-full" 
+                            :style="`width: ${variant.clarity_score * 100}%`"
+                          ></div>
+                        </div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Especificidad</div>
+                        <div class="text-sm font-medium">{{ Math.round(variant.specificity_score * 100) }}%</div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
+                          <div 
+                            class="bg-green-500 h-1.5 rounded-full" 
+                            :style="`width: ${variant.specificity_score * 100}%`"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                      <span class="font-medium">Explicación: </span>{{ variant.explanation }}
+                    </div>
                   </div>
+                </div>
+                
+                <div v-else class="text-center py-8">
+                  <FileX class="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p class="text-lg font-medium text-gray-900 dark:text-gray-100">No hay variantes disponibles</p>
+                  <p class="text-gray-500 dark:text-gray-400">No se generaron variantes para este prompt.</p>
                 </div>
               </div>
             </div>
@@ -418,6 +600,43 @@
                     >
                       {{ standard }}
                     </span>
+                  </div>
+                </div>
+                
+                <!-- Text Analytics -->
+                <div v-if="analysisResult.transparency_report.text_analysis">
+                  <h3 class="text-sm font-medium mb-3">Análisis de Texto</h3>
+                  
+                  <!-- Language and Sentiment -->
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md">
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Idioma</div>
+                      <div class="text-sm font-medium">{{ analysisResult.transparency_report.text_analysis.language || 'No detectado' }}</div>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-md">
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Sentimiento</div>
+                      <div class="text-sm font-medium" :class="{
+                        'text-green-600 dark:text-green-400': analysisResult.transparency_report.text_analysis.sentiment === 'positive',
+                        'text-yellow-600 dark:text-yellow-400': analysisResult.transparency_report.text_analysis.sentiment === 'neutral',
+                        'text-red-600 dark:text-red-400': analysisResult.transparency_report.text_analysis.sentiment === 'negative'
+                      }">
+                        {{ getSentimentLabel(analysisResult.transparency_report.text_analysis.sentiment) }}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Key Phrases -->
+                  <div v-if="analysisResult.transparency_report.text_analysis.key_phrases && analysisResult.transparency_report.text_analysis.key_phrases.length > 0" class="mb-4">
+                    <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Frases Clave:</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span 
+                        v-for="(phrase, i) in analysisResult.transparency_report.text_analysis.key_phrases" 
+                        :key="i"
+                        class="px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full text-xs"
+                      >
+                        {{ phrase }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
@@ -501,10 +720,68 @@
         </div>
       </div>
     </div>
+
+    <!-- Feedback Modal -->
+    <div v-if="showFeedbackModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <h2 class="text-lg font-semibold">¿Fue útil este análisis?</h2>
+          <button @click="showFeedbackModal = false" class="text-gray-500 hover:text-gray-700">
+            <XIcon class="h-5 w-5" />
+          </button>
+        </div>
+        <div class="p-4">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Calificación</label>
+            <div class="flex space-x-2">
+              <button 
+                v-for="rating in 5" 
+                :key="rating"
+                @click="feedbackRating = rating"
+                :class="[
+                  'p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500',
+                  feedbackRating >= rating ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'
+                ]"
+              >
+                <StarIcon class="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="feedback-comments" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Comentarios (opcional)</label>
+            <textarea
+              id="feedback-comments"
+              v-model="feedbackComments"
+              rows="3"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="¿Qué te pareció el análisis?"
+            ></textarea>
+          </div>
+          
+          <div class="flex justify-end space-x-3">
+            <button 
+              @click="submitFeedback(false)" 
+              class="py-2 px-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            >
+              No fue útil
+            </button>
+            <button 
+              @click="submitFeedback(true)" 
+              class="py-2 px-4 bg-primary-500 text-white rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            >
+              Fue útil
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// Agregemos la variable showAdvancedConfig y el nuevo icono en las importaciones
+
 import { ref, watch } from 'vue';
 import { 
   ShieldIcon, 
@@ -514,33 +791,68 @@ import {
   UserIcon,
   AlertTriangleIcon,
   ClipboardIcon,
-  XIcon
+  XIcon,
+  AlertCircleIcon,
+  InfoIcon,
+  CopyIcon,
+  FileX,
+  StarIcon,
+  ChevronRightIcon
 } from 'lucide-vue-next';
 import type { AnalysisResponse, AuditTrail } from '@/types';
-import { analyzePrompt as analyzePromptApi, getAuditTrail } from '@/services/api';
+import { analyzePrompt as analyzePromptApi, getAuditTrail, submitFeedback as submitFeedbackApi } from '@/services/api';
 
 const userPrompt = ref<string>('');
 const analysisResult = ref<AnalysisResponse | null>(null);
 const auditTrail = ref<AuditTrail | null>(null);
 const isLoading = ref<boolean>(false);
-const activeTab = ref<'improved' | 'scores' | 'safety' | 'text' | 'audit'>('improved');
+const activeTab = ref<'improved' | 'scores' | 'issues' | 'variants' | 'audit'>('improved');
 const copied = ref<boolean>(false);
 const showAuditModal = ref<boolean>(false);
+const showFeedbackModal = ref<boolean>(false);
+const feedbackRating = ref<number>(0);
+const feedbackComments = ref<string>('');
+const variantCopied = ref<string | null>(null);
+
+// Primero, agreguemos las nuevas variables de estado para los parámetros de configuración
+// Busca la sección donde se definen las variables ref y agrega estas nuevas:
+
+const generateVariants = ref<boolean>(true);
+const additionalContext = ref<string>('');
+const targetModel = ref<string>('gpt-4');
+const optimizationFocus = ref<string[]>([]);
+// Y agreguemos la variable de estado para controlar la visibilidad de la configuración avanzada
+// Busca la sección donde se definen las variables ref y agrega:
+
+const showAdvancedConfig = ref<boolean>(false);
+
+// Ahora, modifiquemos la función analyzePrompt para incluir estos parámetros
+// Busca la función analyzePrompt y actualízala para incluir los nuevos parámetros:
 
 const analyzePrompt = async (): Promise<void> => {
   if (!userPrompt.value.trim() || userPrompt.value.length < 10) return;
-  
+
   isLoading.value = true;
   auditTrail.value = null;
-  
+
   try {
-    const result = await analyzePromptApi(userPrompt.value);
+    const result = await analyzePromptApi(userPrompt.value, {
+      generate_variants: generateVariants.value,
+      context: additionalContext.value || undefined,
+      target_model: targetModel.value || undefined,
+      optimization_focus: optimizationFocus.value.length > 0 ? optimizationFocus.value : undefined
+    });
     analysisResult.value = result;
     activeTab.value = 'improved';
     
     // Si no hay error, cargar el registro de auditoría
     if (!result.error && result.analysis_id) {
       loadAuditTrail(result.analysis_id);
+      
+      // Mostrar modal de feedback después de un tiempo
+      setTimeout(() => {
+        showFeedbackModal.value = true;
+      }, 10000); // 10 segundos
     }
   } catch (error) {
     console.error("Error analyzing prompt:", error);
@@ -560,7 +872,7 @@ const loadAuditTrail = async (analysisId: string): Promise<void> => {
 
 const copyToClipboard = (): void => {
   if (!analysisResult.value || !analysisResult.value.improved_prompt) return;
-  
+
   navigator.clipboard.writeText(analysisResult.value.improved_prompt);
   copied.value = true;
   setTimeout(() => {
@@ -568,12 +880,25 @@ const copyToClipboard = (): void => {
   }, 2000);
 };
 
-const getSeverityClass = (severity: number | null | undefined): string => {
-  if (severity === null || severity === undefined) return '';
-  
-  if (severity >= 4) return 'border-2 border-red-500';
-  if (severity >= 2) return 'border-2 border-yellow-500';
-  return '';
+const copyVariant = (text: string): void => {
+  navigator.clipboard.writeText(text);
+  variantCopied.value = text;
+  setTimeout(() => {
+    variantCopied.value = null;
+  }, 2000);
+};
+
+const getSeverityTextClass = (severity: number): string => {
+  if (severity >= 4) return 'text-red-600 dark:text-red-400';
+  if (severity >= 2) return 'text-yellow-600 dark:text-yellow-400';
+  return 'text-green-600 dark:text-green-400';
+};
+
+const getSeverityLabel = (severity: number): string => {
+  if (severity >= 4) return 'Alto';
+  if (severity >= 2) return 'Medio';
+  if (severity > 0) return 'Bajo';
+  return 'Ninguno';
 };
 
 const getSentimentLabel = (sentiment: string): string => {
@@ -581,7 +906,7 @@ const getSentimentLabel = (sentiment: string): string => {
     case 'positive': return 'Positivo';
     case 'negative': return 'Negativo';
     case 'neutral': return 'Neutral';
-    default: return sentiment;
+    default: return sentiment || 'No detectado';
   }
 };
 
@@ -592,6 +917,43 @@ const formatPrivacyMeasure = (measure: string): string => {
   }
 };
 
+const formatIssueType = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    'fairness': 'Problema de Equidad',
+    'safety': 'Problema de Seguridad',
+    'privacy': 'Problema de Privacidad',
+    'inclusiveness': 'Problema de Inclusividad',
+    'bias': 'Sesgo Detectado',
+    'ambiguity': 'Ambigüedad',
+    'clarity': 'Falta de Claridad',
+    'completeness': 'Información Incompleta',
+    'other': 'Otro Problema'
+  };
+  
+  return typeMap[type] || type.replace(/\b\w/g, l => l.toUpperCase());
+};
+
+const formatSeverity = (severity: string): string => {
+  const severityMap: Record<string, string> = {
+    'high': 'Alto',
+    'medium': 'Medio',
+    'low': 'Bajo'
+  };
+  
+  return severityMap[severity] || severity;
+};
+
+const formatCategory = (category: string): string => {
+  const categoryMap: Record<string, string> = {
+    'Hate': 'Odio',
+    'SelfHarm': 'Autolesión',
+    'Sexual': 'Sexual',
+    'Violence': 'Violencia'
+  };
+  
+  return categoryMap[category] || category;
+};
+
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleString();
@@ -599,6 +961,25 @@ const formatDate = (dateString: string): string => {
 
 const viewFullAudit = (): void => {
   showAuditModal.value = true;
+};
+
+const submitFeedback = async (wasUseful: boolean): Promise<void> => {
+  if (!analysisResult.value) return;
+  
+  try {
+    await submitFeedbackApi({
+      analysis_id: analysisResult.value.analysis_id,
+      satisfaction_rating: feedbackRating.value || undefined,
+      feedback_comments: feedbackComments.value || undefined,
+      was_useful: wasUseful
+    });
+    
+    showFeedbackModal.value = false;
+    alert("¡Gracias por tu feedback!");
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    alert("Ocurrió un error al enviar el feedback. Por favor, intente de nuevo.");
+  }
 };
 
 // Limpiar el resultado cuando cambia el prompt

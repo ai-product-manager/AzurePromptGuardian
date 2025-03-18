@@ -23,8 +23,6 @@ export interface TextAnalytics {
   key_phrases: string[]
 }
 
-// Asegúrate de que la interfaz ContentSafety tenga los nombres de propiedades correctos:
-
 export interface ContentSafety {
   hate_severity: number
   self_harm_severity: number
@@ -33,10 +31,27 @@ export interface ContentSafety {
 }
 
 export interface AnalysisIssue {
-  type: "fairness" | "safety" | "privacy" | "inclusiveness" | "bias" | "other"
+  type:
+    | "fairness"
+    | "safety"
+    | "privacy"
+    | "inclusiveness"
+    | "bias"
+    | "ambiguity"
+    | "clarity"
+    | "completeness"
+    | "other"
   description: string
   severity: Severity
   mitigation: string
+}
+
+export interface PromptVariant {
+  variant_text: string
+  quality_score: number
+  clarity_score: number
+  specificity_score: number
+  explanation: string
 }
 
 export interface OpenAIAnalysis {
@@ -49,16 +64,33 @@ export interface OpenAIAnalysis {
 // Tipos para la respuesta de análisis
 export interface AnalysisResponse {
   analysis_id: string
+  original_prompt?: string
   improved_prompt: string | null
   fairness_score: number
   safety_score: number
   inclusivity_score: number
+  clarity_score: number
+  completeness_score: number
+  ambiguity_score: number
   privacy_measures: string[]
   transparency_report: {
-    safety_analysis: ContentSafety
-    text_analysis: TextAnalytics
+    safety_analysis: {
+      categories: Record<string, number>
+    }
+    text_analysis: {
+      sentiment: string
+      key_phrases: string[]
+      language: string
+    }
+    ambiguity_analysis: {
+      ambiguous_terms: string[]
+      missing_context: string[]
+    }
   }
   accountability_id: string
+  suggested_variants?: PromptVariant[]
+  improvement_explanation?: string
+  issues: AnalysisIssue[]
   error?: string
 }
 
@@ -139,9 +171,21 @@ export interface RejectedPrompt {
   status: "rejected"
 }
 
+export interface FeedbackRequest {
+  analysis_id: string
+  selected_variant?: string
+  satisfaction_rating?: number
+  feedback_comments?: string
+  was_useful: boolean
+}
+
 export type TimePeriod = "week" | "month" | "quarter" | "year"
 
 export interface PromptRequest {
   prompt: string
+  generate_variants?: boolean
+  context?: string
+  target_model?: string
+  optimization_focus?: string[]
 }
 
