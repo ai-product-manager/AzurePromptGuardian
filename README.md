@@ -1,6 +1,6 @@
 # **Azure Prompt Guardian**  
 *A secure and intelligent prompt management system using Azure services.*
-
+![Azure prompt Guardian ](https://drive.google.com/uc?export=view&id=1kM50qqiQQu1gy_neIh36FtbnHkjK5BU-)
 ## **Introduction**
 Azure Prompt Guardian is designed to securely manage, analyze, and optimize prompts used in AI applications. It leverages Azure's cloud capabilities to ensure scalability, security, and efficiency. The system identifies and corrects grammatical errors, incomplete queries, and unclear inputs while flagging harmful or sensitive language. It also enhances prompt clarity and precision to improve AI output quality.
 
@@ -14,7 +14,25 @@ AI-generated responses depend heavily on the quality of input prompts. Poorly st
 Azure Prompt Guardian auto-corrects and validates user inputs before they are processed by an AI model. It ensures that prompts are optimized, compliant, and free of potential risks such as bias, harmful language, or sensitive data. The system leverages multiple Azure services to provide an end-to-end solution for prompt validation and enhancement.
 
 ## **Architecture**
-![Architecture Diagram](link-to-diagram)
+```mermaid
+flowchart TD
+    A[Usuario] -->|Input prompt| B[Frontend App Service]
+    B --> C[Preprocesamiento API]
+    C --> D[Azure AI Language]
+    C --> E[Azure AI Content Safety]
+    C --> F[Azure OpenAI Service]
+    D -->|Análisis gramatical| G[Engine de Corrección]
+    E -->|Detección contenido dañino| G
+    F -->|Análisis semántico| G
+    G --> H[Azure Prompt Flow]
+    H -->|Optimización| I[Prompt Mejorado]
+    I --> J[Sistema IA destino]
+    J -->|Respuesta| B
+    G -->|Métricas| K[Cosmos DB]
+    L[Key Vault] -->|Secrets| C
+    M[Azure Monitor] -->|Logging| C
+```
+
 
 ### **Key Components:**
 - **Azure Cosmos DB** 
