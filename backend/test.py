@@ -1,2 +1,0 @@
-import os
-print("CONTENT_SAFETY_ENDPOINT:", os.getenv("CONTENT_SAFETY_ENDPOINT"))
