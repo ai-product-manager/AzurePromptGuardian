@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from models import *
 from database import get_analytics_container, get_rejected_container
 import logging
-from main import config
 from collections import defaultdict
 
 router = APIRouter(prefix="/dashboard")
