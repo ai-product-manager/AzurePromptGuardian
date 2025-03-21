@@ -419,7 +419,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["POST", "GET"],
+    allow_methods=["POST", "GET", "OPTIONS"],
     allow_headers=["Authorization"],
     max_age=600
 )
@@ -431,7 +431,7 @@ from backend.dashboard_routes import router as dashboard_router
 app.include_router(dashboard_router)
 
 # ========== Endpoints ==========
-@app.post("/analyze-prompt", response_model=AnalysisResponse)
+@app.post("/api/analyze-prompt", response_model=AnalysisResponse)
 async def analyze_prompt(request: PromptRequest, background_tasks: BackgroundTasks):
     """
     Analiza un prompt, detecta problemas de seguridad, privacidad, equidad y claridad,
