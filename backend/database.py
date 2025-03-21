@@ -1,5 +1,5 @@
 from azure.cosmos import CosmosClient
-from main import config 
+from backend.main import config 
 
 def get_cosmos_client():
     return CosmosClient(

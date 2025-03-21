@@ -418,14 +418,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://polite-pebble-09655870f.6.azurestaticapps.net/analyze"],
+    allow_origins=["*"],
     allow_methods=["POST", "GET"],
     allow_headers=["Authorization"],
     max_age=600
 )
 
 # Importar el router de dashboard
-from dashboard_routes import router as dashboard_router 
+from backend.dashboard_routes import router as dashboard_router 
 
 # Agregar el router a la aplicación
 app.include_router(dashboard_router)

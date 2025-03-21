@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Query, HTTPException
 from typing import List
 from datetime import datetime, timedelta
-from models import *
-from database import get_analytics_container, get_rejected_container
+from backend.models import *
+from backend.database import get_analytics_container, get_rejected_container
 import logging
 from collections import defaultdict
 
