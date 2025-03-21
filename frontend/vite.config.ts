@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: 'https://webapp-grupo12-e4age2hce4gzd3fw.canadacentral-01.azurewebsites.net/',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }

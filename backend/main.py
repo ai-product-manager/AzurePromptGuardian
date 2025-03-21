@@ -418,7 +418,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://frontend.example.com"],
+    allow_origins=["https://polite-pebble-09655870f.6.azurestaticapps.net/analyze"],
     allow_methods=["POST", "GET"],
     allow_headers=["Authorization"],
     max_age=600
