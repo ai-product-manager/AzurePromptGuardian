@@ -1,4 +1,5 @@
 import axios from "axios"
+import { v4 as uuidv4 } from 'uuid';
 import type {
   AnalysisResponse,
   PromptRequest,
@@ -11,7 +12,7 @@ import type {
   FeedbackRequest,
 } from "../types"
 
-const API_URL = ""
+const API_URL = "/api"
 
 // Actualicemos la función analyzePrompt en el servicio API para aceptar los parámetros adicionales
 
@@ -24,12 +25,75 @@ export const analyzePrompt = async (
     optimization_focus?: string[]
   },
 ): Promise<AnalysisResponse> => {
-  const response = await axios.post<AnalysisResponse>(`${API_URL}/analyze-prompt`, {
-    prompt,
-    ...options,
-  } as PromptRequest)
-  return response.data
-}
+  try {
+    const requestPayload: PromptRequest = {
+      prompt,
+      generate_variants: options?.generate_variants || false,
+      context: options?.context,
+      target_model: options?.target_model,
+      optimization_focus: options?.optimization_focus
+    };
+
+    console.debug("[API] Request payload:", JSON.stringify(requestPayload, null, 2));
+    console.log(`[API] Sending POST to: ${API_URL}/analyze-prompt`);
+
+    const startTime = performance.now();
+    
+    const response = await axios.post<AnalysisResponse>(
+      `${API_URL}/analyze-prompt`,
+      requestPayload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Request-ID': uuidv4() // Agregar ID único para tracking
+        },
+        timeout: 30000, // 30 segundos timeout
+        validateStatus: (status) => status >= 200 && status < 500 // Considerar 4xx como respuesta válida
+      }
+    );
+
+    const duration = performance.now() - startTime;
+    console.log(`[API] Response received in ${duration.toFixed(2)}ms`);
+    console.debug("[API] Full response:", response);
+
+    if (response.status >= 400) {
+      console.error(`[API Error] HTTP ${response.status}: ${response.statusText}`);
+      console.error("Error details:", response.data);
+      throw new Error(`HTTP Error ${response.status}: ${response.data?.error || response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("[API Critical Error] Full error object:", error);
+    
+    if (axios.isAxiosError(error)) {
+      console.error("[API Axios Error Details]:");
+      console.error("Request config:", error.config);
+      console.error("Response data:", error.response?.data);
+      console.error("Response status:", error.response?.status);
+      console.error("Response headers:", error.response?.headers);
+      
+      let errorMessage = "Error desconocido en la comunicación con el servidor";
+      
+      if (!error.response) {
+        errorMessage = "No se pudo conectar al servidor. Verifica tu conexión a internet.";
+      } else if (error.response.status === 405) {
+        errorMessage = `Método no permitido (405). Verifica: 
+          1. Si el endpoint existe (${error.config?.url})
+          2. Si el método HTTP es correcto (POST)
+          3. Configuración CORS del servidor`;
+      }
+
+      throw new Error(`Error del servidor: ${errorMessage}`);
+    }
+
+    if (error instanceof Error) {
+      throw new Error(`Error en la solicitud: ${error.message}`);
+    }
+
+    throw new Error("Error desconocido al procesar la solicitud");
+  }
+};
 
 export const getAuditTrail = async (analysisId: string): Promise<AuditTrail> => {
   const response = await axios.get<AuditTrail>(`${API_URL}/audit/${analysisId}`)

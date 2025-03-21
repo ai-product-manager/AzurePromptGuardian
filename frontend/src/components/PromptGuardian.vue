@@ -856,7 +856,7 @@ const analyzePrompt = async (): Promise<void> => {
     }
   } catch (error) {
     console.error("Error analyzing prompt:", error);
-    alert("Ocurrió un error al analizar el prompt. Por favor, intente de nuevo.");
+    alert("Ocurrió un error al analizar el prompt. Por favor, intente de nuevo.", error);
   } finally {
     isLoading.value = false;
   }
