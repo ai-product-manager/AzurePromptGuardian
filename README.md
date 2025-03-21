@@ -1,6 +1,8 @@
 # **Azure Prompt Guardian**  
+![Descripción de la imagen](https://drive.google.com/uc?export=view&id=17uZdVY2gDOP1g6q14pPd6-c4R-jIq8S-)
+
 *A secure and intelligent prompt management system using Azure services.*
-![Azure prompt Guardian ](https://drive.google.com/uc?export=view&id=1kM50qqiQQu1gy_neIh36FtbnHkjK5BU-)
+![Descripción de la imagen](https://drive.google.com/uc?export=view&id=1aVfPIOu1zaO3vv6VL7HjJ8fWwuz56iRL)
 ## **Introduction**
 Azure Prompt Guardian is designed to securely manage, analyze, and optimize prompts used in AI applications. It leverages Azure's cloud capabilities to ensure scalability, security, and efficiency. The system identifies and corrects grammatical errors, incomplete queries, and unclear inputs while flagging harmful or sensitive language. It also enhances prompt clarity and precision to improve AI output quality.
 
@@ -24,7 +26,7 @@ flowchart TD
     D -->|Análisis gramatical| G[Engine de Corrección]
     E -->|Detección contenido dañino| G
     F -->|Análisis semántico| G
-    G --> H[Azure Prompt Flow]
+    G --> H[Azure Variantes]
     H -->|Optimización| I[Prompt Mejorado]
     I --> J[Sistema IA destino]
     J -->|Respuesta| B
@@ -57,10 +59,16 @@ flowchart TD
 - **Dashboard Analytics**: Provides analytics on prompt quality and safety.
 - **Secure and Scalable**: Leverages Azure Key Vault for security and Cosmos DB for scalable storage.
 
+#### Prompt Optimizing 
+![Descripción de la imagen](https://drive.google.com/uc?export=view&id=17uZdVY2gDOP1g6q14pPd6-c4R-jIq8S-)
+
+#### Harm Content Flagging 
+![Descripción de la imagen](https://drive.google.com/uc?export=view&id=1z1Hepn-pKjDB6zZlas0Kf690UB079699)
+
 ## **Tech Stack**
 
 ### **Frontend:**
-- **Framework:** Vite + TypeScript + React
+- **Framework:** Vite + TypeScript + Vue.js 
 - **Styling:** Tailwind CSS, PostCSS
 - **Hosting:** Azure Static Web Apps
 
@@ -93,7 +101,7 @@ Before setting up the project, ensure you have the following installed:
    ```
 2. **Install dependencies:**
    ```sh
-   pip install -r requirements.txt
+   pip install -r requirements.txtgit rm backend/main3.py
    ```
 3. **Set up environment variables:**
    - Create an `.env` file and configure Azure credentials.

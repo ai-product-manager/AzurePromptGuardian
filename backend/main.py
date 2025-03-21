@@ -38,7 +38,7 @@ class SecureConfig:
     def __init__(self):
         self.credential = DefaultAzureCredential()
         self.secret_client = SecretClient(
-            vault_url="https://keyvaultgrupo12.vault.azure.net/",
+            vault_url="https://vault-pguardian1803.vault.azure.net",
             credential=self.credential
         )
     
