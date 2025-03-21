@@ -11,7 +11,7 @@ import type {
   FeedbackRequest,
 } from "../types"
 
-const API_URL = "/api"
+const API_URL = ""
 
 // Actualicemos la función analyzePrompt en el servicio API para aceptar los parámetros adicionales
 
