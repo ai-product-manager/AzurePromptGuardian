@@ -11,9 +11,10 @@ export default defineConfig({
     }
   },
   server: {
+    cors: true,
     proxy: {
       '/api': {
-        target: '*',
+        target: 'https://webapp-grupo12-e4age2hce4gzd3fw.canadacentral-01.azurewebsites.net/',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
